@@ -1,30 +1,37 @@
-#ifndef THEGAMEOFLIFE_GAMEFIELD_H
-#define THEGAMEOFLIFE_GAMEFIELD_H
+#pragma once
+#include <string>
+#include "GameRules.h"
+#include "GameField.h"
 
+namespace gol {
+    class GameField {
+        bool *data{};
+        int width;
+        int height;
+        std::string name;
+        GameRules rules;
+        Logger logger = Logger("GameFieldIO");
+        friend class GameFieldIO;
 
-class GameField {
-public:
-    GameField();
+    public:
 
-    void setDot(Dot);
+        GameField(GameRules rules, std::string name, const bool *data, int width, int height);
 
-    void tick();
+        ~GameField();
 
-    GameScreen getScreen(int x, int y, int width, int height)
+        void setDot(int x, int y, bool val);
 
-};
+        bool getData(int x, int y);
 
-class GameScreen {
-public:
+        void tick();
 
-    bool hasDot(Dot);
+        int getWidth();
 
-};
+        int getHeight();
 
-struct Dot {
-    int x;
-    int y;
-};
+        GameRules getRules();
 
+        unsigned int getArrayPose(int x, int y);
 
-#endif
+    };
+}
