@@ -13,14 +13,18 @@ GameField::~GameField() {
     free(data);
 }
 
-unsigned int GameField::getArrayPose(int x, int y) {
+unsigned int GameField::getArrayPose(int x, int y, int width, int height) {
     return (x > 0 ?
-        (x % width) :
-        width + (-1 +  (x % width)))
-    + width *
-        (y > 0 ?
-            (y % height) :
-            (height + (-1 + (y%height))));
+            (x % width) :
+            width + (-1 +  (x % width)))
+           + width *
+             (y > 0 ?
+              (y % height) :
+              (height + (-1 + (y%height))));
+}
+
+unsigned int GameField::getArrayPose(int x, int y) {
+    return getArrayPose(x, y, width, height);
 }
 
 bool GameField::getData(int x, int y) {
@@ -75,4 +79,8 @@ void GameField::tick() {
     }
     free(this->data);
     this->data = data;
+}
+
+std::string GameField::getName() {
+    return name;
 }

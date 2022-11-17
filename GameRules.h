@@ -13,10 +13,15 @@ namespace gol {
 
     public:
 
-        explicit GameRules();
+        GameRules();
+
+        GameRules(std::set<int> brith, std::set<int> survival);
 
         explicit GameRules(std::string data);
 
         bool isActive(bool hasDot, int neighbors);
+
+        friend std::ostream& operator<< (std::ostream &stream, const gol::GameRules &rules);
+
     };
 }

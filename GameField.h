@@ -13,6 +13,10 @@ namespace gol {
         Logger logger = Logger("GameFieldIO");
         friend class GameFieldIO;
 
+    private:
+
+        static unsigned int getArrayPose(int x, int y, int width, int height);
+
     public:
 
         GameField(GameRules rules, std::string name, const bool *data, int width, int height);
@@ -30,6 +34,8 @@ namespace gol {
         int getHeight();
 
         GameRules getRules();
+
+        std::string getName();
 
         unsigned int getArrayPose(int x, int y);
 
