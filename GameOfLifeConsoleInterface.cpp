@@ -12,10 +12,11 @@ static void printHelp() {
             << "help - show this text" << std::endl;
 }
 
-static void printField(GameField field, int iteration) {
+static void printField(GameField &field, int iteration) {
     std::cout << "Name: " << field.getName() << std::endl;
     std::cout << "Rules: " << field.getRules() << std::endl;
     std::cout << "Iteration: " << iteration << std::endl;
+    std::cout << "Size: " << field.getWidth() << "x" << field.getHeight() << std::endl;
 
     for(int y = 0; y < field.getHeight(); y++) {
         for(int x = 0; x < field.getWidth(); x++) {
@@ -26,12 +27,14 @@ static void printField(GameField field, int iteration) {
 }
 
 void GameOfLifeConsoleInterface::start() {
+    printHelp();
     while(true) {
-        std::string command;
-        std::cin>>command;
+        char buffer[2048];
+        logger.debug("wait for command");
+        std::cin.getline(buffer, 2048);
         std::vector <std::string> args;
         std::string word;
-        std::stringstream s(command);
+        std::stringstream s(buffer);
         while (s >> word)
             args.push_back(word);
         if(args[0] == "exit") {
@@ -49,8 +52,12 @@ void GameOfLifeConsoleInterface::start() {
                     field.tick();
                     iterationCount++;
                 }
+            } else {
+                printHelp();
+                continue;
             }
             printField(field, iterationCount);
+            logger.debug("field printed");
             continue;
         }
         if(args[0] == "dump") {
@@ -69,3 +76,5 @@ void GameOfLifeConsoleInterface::start() {
         printHelp();
     }
 }
+
+GameOfLifeConsoleInterface::GameOfLifeConsoleInterface(GameField &field): field(field) {}

@@ -44,25 +44,40 @@ GameRules::GameRules(std::string data) {
 GameRules::GameRules(std::set<int> brith, std::set<int> survival): brith(std::move(brith)), survival(std::move(survival)) {}
 
 GameRules::GameRules() {
-    this->brith = {3};
-    this->survival = {2, 3};
+    this->brith.insert(3);
+    this->survival.insert(2);
+    this->survival.insert(3);
 }
 
-bool GameRules::isActive(bool hasDot, int neighbors) {
+bool GameRules::isActive(bool hasDot, int neighbors) const {
     if(hasDot)
         return this->survival.find(neighbors) != this->survival.end();
     else
         return this->brith.find(neighbors) != this->brith.end();
 }
 
-std::ostream &gol::operator<<(std::ostream &out, const GameRules &rules) {
-    out << "B ";
-    for(int b : rules.brith) {
-        out << (b + '0');
+std::set<int> GameRules::getBrith() const {
+    return this->brith;
+}
+
+std::set<int> GameRules::getSurvive() const {
+    return this->survival;
+}
+
+GameRules &GameRules::operator=(const GameRules & rules) {
+    this->brith = rules.brith;
+    this->survival = rules.survival;
+    return *this;
+}
+
+std::ostream &operator<<(std::ostream &out, const GameRules rules) {
+    out << "B";
+    for(int b : rules.getBrith()) {
+        out << (char) (b + '0');
     }
     out<<"/S";
-    for(int s : rules.survival) {
-        out << (s + '0');
+    for(int s : rules.getSurvive()) {
+        out << (char) (s + '0');
     };
     return out;
 }

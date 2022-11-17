@@ -18,15 +18,12 @@ struct GameFieldLore{
 };
 
 GameFieldLore defaultFields[]{
-    {64, 64,
-     {{32, 32}, {33, 32}, {34, 32}, {34, 33}, {33, 32}},
+    {15, 15,
+     {{5, 5}, {6,5}, {7,5}, {7,4}, {6,3}},
      GameRules(),
      "Glider"},
-    {75, 40,
-     {{20, 19}, {20, 20}, {20, 21},
-      {24, 20}, {25, 20}, {26, 20},
-      {30, 19}, {30, 20}, {30, 21},
-      {34, 20}, {35, 20}, {36, 20}},
+    {5, 5,
+     {{3,3}, {2,3}, {4,3}},
      GameRules(),
      "Blinkers"}
 };
@@ -135,7 +132,7 @@ GameField GameFieldIO::readField() {
     return GameField(rules, name, data, size.first, size.second);
 }
 
-void GameFieldIO::writeInFile(GameField field) {
+void GameFieldIO::writeInFile(GameField& field) {
     std::ofstream output(path);
     output << fileHeader;
     output << "#N" << field.getName() << std::endl;
@@ -144,7 +141,7 @@ void GameFieldIO::writeInFile(GameField field) {
     for(int x = 0; x < field.getWidth(); x++) {
         for(int y = 0; y < field.getHeight(); y++) {
             if(field.getData(x, y)) {
-                output<<x<<" "<<y<<std::endl;
+                output << x << " " << y << std::endl;
             }
         }
     }
@@ -156,7 +153,14 @@ GameField GameFieldIO::getDefault() {
     number = rand() % number;
     GameFieldLore lore = defaultFields[number];
     bool data[lore.width*lore.height];
+    Logger log("DefaultGameFieldBuilder");
+    for (int x = 0; x < lore.width; x++) {
+        for (int y = 0; y < lore.height; y++) {
+            data[GameField::getArrayPose(x, y, lore.width, lore.height)] = false;
+        }
+    }
     for(std::pair<int, int> dot : lore.dots) {
+        log.debug("set dot " + std::to_string(dot.first) + ":" + std::to_string(dot.second));
         data[GameField::getArrayPose(dot.first, dot.second, lore.width, lore.height)] = true;
     }
     return GameField(lore.rules, lore.name, data, lore.width, lore.height);

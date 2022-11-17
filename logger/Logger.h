@@ -12,7 +12,7 @@ private:
 
     std::string name;
 
-    static bool isDebug;
+    static bool useDebug;
 
 public:
 
@@ -27,5 +27,7 @@ public:
     void debug(std::string message);
 
     static void setDebug(bool isDebug);
+
+    static bool isDebug();
 
 };

@@ -1,11 +1,10 @@
 #pragma once
 #include <string>
 #include "GameRules.h"
-#include "GameField.h"
 
 namespace gol {
     class GameField {
-        bool *data{};
+        bool *data;
         int width;
         int height;
         std::string name;
@@ -19,7 +18,7 @@ namespace gol {
 
     public:
 
-        GameField(GameRules rules, std::string name, const bool *data, int width, int height);
+        GameField(GameRules& rules, std::string name, const bool *data, int width, int height);
 
         ~GameField();
 
@@ -38,6 +37,8 @@ namespace gol {
         std::string getName();
 
         unsigned int getArrayPose(int x, int y);
+
+        GameField& operator=(GameField const &);
 
     };
 }

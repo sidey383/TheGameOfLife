@@ -1,5 +1,5 @@
 #pragma once
-#include "gameoflife.h"
+#include "game/gameoflife.h"
 
 namespace gol {
 
@@ -11,7 +11,7 @@ namespace gol {
 
     public:
 
-        GameOfLifeConsoleInterface(GameField field);
+        explicit GameOfLifeConsoleInterface(GameField &field);
 
         void start();
 

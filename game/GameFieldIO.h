@@ -1,6 +1,6 @@
 #pragma once
 #include "GameField.h"
-#include "Logger.h"
+#include "../logger/Logger.h"
 
 namespace gol {
     class GameFieldIO {
@@ -15,9 +15,9 @@ namespace gol {
 
         GameField readField();
 
-        GameField getDefault();
+        static GameField getDefault();
 
-        void writeInFile(GameField);
+        void writeInFile(GameField&);
 
     };
 }

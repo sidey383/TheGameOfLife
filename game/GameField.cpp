@@ -3,8 +3,9 @@
 
 using namespace gol;
 
-GameField::GameField(GameRules rules, std::string name, const bool* data, int width, int height):
-        rules(std::move(rules)), name(std::move(name)), width(width), height(height) {
+GameField::GameField(GameRules& rules, std::string name, const bool *data, int width, int height):
+        rules(rules), name(std::move(name)), width(width), height(height) {
+    logger.debug("create game field " + name);
     this->data = (bool*) malloc(sizeof(bool) * width * height);
     memcpy(this->data, data, sizeof(bool) * width * height);
 }
@@ -14,13 +15,13 @@ GameField::~GameField() {
 }
 
 unsigned int GameField::getArrayPose(int x, int y, int width, int height) {
-    return (x > 0 ?
+    return (x >= 0 ?
             (x % width) :
-            width + (-1 +  (x % width)))
+            width + x%width)
            + width *
-             (y > 0 ?
+             (y >= 0 ?
               (y % height) :
-              (height + (-1 + (y%height))));
+              (height + (y % height)));
 }
 
 unsigned int GameField::getArrayPose(int x, int y) {
@@ -83,4 +84,13 @@ void GameField::tick() {
 
 std::string GameField::getName() {
     return name;
+}
+
+GameField& GameField::operator=(GameField const & field) {
+    this->width = field.width;
+    this->height = field.height;
+    this->rules = field.rules;
+    this->data = (bool*) malloc(sizeof(bool) * width * height);
+    memcpy(this->data, field.data, sizeof(bool) * width * height);
+    return *this;
 }

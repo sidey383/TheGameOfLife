@@ -3,4 +3,4 @@ project(TheGameOfLife)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(TheGameOfLife main.cpp GameField.cpp GameRules.cpp Logger.cpp GameFieldIO.cpp GameOfLifeConsoleInterface.cpp)
+add_executable(TheGameOfLife main.cpp game/GameField.cpp game/GameRules.cpp logger/Logger.cpp game/GameFieldIO.cpp GameOfLifeConsoleInterface.cpp)
