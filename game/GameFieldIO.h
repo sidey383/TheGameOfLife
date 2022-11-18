@@ -8,16 +8,14 @@ namespace gol {
         Logger logger = Logger("GameFieldIO");
         std::string fileHeader = "#Life 1.06";
 
-        std::pair<int, int> readNumbers(char* buffer);
-
     public:
         explicit GameFieldIO(std::string path);
 
-        GameField readField();
+        GameField readField() const;
 
-        static GameField getDefault();
+        static GameField getDefault(unsigned int number);
 
-        void writeInFile(GameField&);
+        void writeInFile(GameField&) const;
 
     };
 }

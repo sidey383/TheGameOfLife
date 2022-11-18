@@ -13,9 +13,9 @@ namespace gol {
     public:
         GameRules();
 
-        GameRules(std::set<int> brith, std::set<int> survival);
-
         GameRules(GameRules const &);
+
+        GameRules(std::set<int> brith, std::set<int> survival);
 
         explicit GameRules(std::string data);
 

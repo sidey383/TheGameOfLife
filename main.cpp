@@ -2,6 +2,7 @@
 #include "logger/Logger.h"
 #include "GameOfLifeConsoleInterface.h"
 #include <cstring>
+#include <ctime>
 
 struct InputState {
     char* outputFile;
@@ -21,7 +22,6 @@ static void printHelp() {
 }
 
 static InputState readState(int size, char** args) {
-    Logger::setDebug(true);
     Logger logger("ParseArgs");
     InputState state {nullptr, nullptr, 0};
     for(int i = 1; i < size; i++) {
@@ -30,24 +30,24 @@ static InputState readState(int size, char** args) {
                 if (i + 1 < size) {
                     state.iterationCount = std::stoi(args[i + 1]);
                     if(state.iterationCount <= 0) {
-                        logger.error("count of iterations not natural number");
+                        logger.error() << "count of iterations not natural number";
                     }
                 } else {
-                    logger.error("No value for key -i");
+                    logger.error() << "No value for key -i";
                 }
             }
 
             if (!strcmp(args[i], "--iterations=")) {
                 state.iterationCount = std::stoi(args[i] + 12);
                 if(state.iterationCount <= 0) {
-                    logger.error("count of iterations not natural number");
+                    logger.error() << "count of iterations not natural number";
                 }
             }
             if (!strcmp(args[i], "-o")) {
                 if (i + 1 < size) {
                     state.outputFile = args[i+1];
                 } else {
-                    logger.error("No value for key -o");
+                    logger.error() << "No value for key -o";
                 }
             }
 
@@ -58,7 +58,7 @@ static InputState readState(int size, char** args) {
                 if (i + 1 < size) {
                     state.inputFile = args[i+1];
                 } else {
-                    logger.error("No value for key -o");
+                    logger.error() << "No value for key -in";
                 }
             }
 
@@ -66,25 +66,39 @@ static InputState readState(int size, char** args) {
                 state.inputFile = args[i] + 8;
             }
         } catch (std::exception &e) {
-            logger.error(e);
+            logger.error() << e.what();
         }
     }
     return state;
 }
 
 int main(int argc, char** argv) {
+    Logger::setLevel(Logger::Error);
     InputState state = readState(argc, argv);
     Logger logger("Main");
-    logger.debug("input file: " + (!state.inputFile ? "null" : std::string(state.inputFile)) + " " + "output file: " + (!state.outputFile ? "null" : std::string(state.outputFile)) + " " + "iteration: " + std::to_string(state.iterationCount));
-    gol::GameField field = gol::GameFieldIO::getDefault();
-    if(state.inputFile != nullptr) {
-        gol::GameFieldIO fieldIo(state.inputFile);
-        field = fieldIo.readField();
-    }
-    try {
+    logger.debug()
+            << "input file: " << (!state.inputFile ? "null" : state.inputFile) << "\n"
+            << "output file: " << (!state.outputFile ? "null" : state.outputFile) << "\n"
+            << "iteration: " << std::to_string(state.iterationCount);
 
-        if(state.outputFile != nullptr && state.iterationCount > 0) {
-            for(int i = 0; i < state.iterationCount; i++) {
+    gol::GameField field;
+    if (state.inputFile != nullptr) {
+        gol::GameFieldIO fieldIo(state.inputFile);
+        try {
+            field = fieldIo.readField();
+        } catch (FileFormatException &e) {
+            logger.error() << e;
+        } catch (std::exception &e) {
+            logger.error() << e.what();
+        }
+    } else {
+        srand(time(nullptr));
+        field = gol::GameFieldIO::getDefault(rand());
+    }
+
+    try {
+        if (state.outputFile != nullptr && state.iterationCount > 0) {
+            for (int i = 0; i < state.iterationCount; i++) {
                 field.tick();
             }
             gol::GameFieldIO(state.outputFile).writeInFile(field);
@@ -92,8 +106,10 @@ int main(int argc, char** argv) {
             gol::GameOfLifeConsoleInterface interface(field);
             interface.start();
         }
+    } catch (FileFormatException &e) {
+        logger.error() << e;
     } catch (std::exception &e) {
-        logger.error(e);
+        logger.error() << e.what();
     }
     return 0;
 }

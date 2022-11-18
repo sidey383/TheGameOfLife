@@ -4,8 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <stdlib.h>
-#include <ctime>
+#include <cstring>
 
 #define BUFFER_SIZE 2048
 
@@ -18,8 +17,7 @@ struct GameFieldLore{
     GameRules rules;
     std::string name;
 };
-
-GameFieldLore defaultFields[]{
+const GameFieldLore defaultFields[]{
     {15, 15,
      {{5, 5}, {6,5}, {7,5}, {7,4}, {6,3}},
      GameRules(),
@@ -27,54 +25,54 @@ GameFieldLore defaultFields[]{
     {5, 5,
      {{3,3}, {2,3}, {4,3}},
      GameRules(),
-     "Blinkers"}
+     "Blinkers"},
+    {12, 12,
+            {{6,6}, {6,7}, {7,6}, {7, 7}},
+            GameRules({2}, {2}),
+            "Cube"}
 };
 
-GameFieldIO::GameFieldIO(std::string path): path(path) {}
+GameFieldIO::GameFieldIO(std::string path): path(std::move(path)) {}
 
-std::pair<int, int> GameFieldIO::readNumbers(char *buffer) {
+static std::pair<int, int> readNumbers(char *buffer){
     std::stringstream readStream((std::string(buffer)));
     std::pair<int, int> pair;
     readStream >> pair.first >> pair.second;
     return pair;
 }
 
-GameField GameFieldIO::readField() {
+GameField GameFieldIO::readField() const {
     std::string name = path;
     bool noName = true;
     GameRules rules;
     bool noRules = true;
-    std::pair<int, int> size(64, 64);
+    std::pair<int, int> size(32, 32);
     bool noSize = true;
 
     std::vector<std::pair<int, int>> dots;
 
     std::ifstream input(path);
+    if (input.fail()) {
+        throw std::invalid_argument("invalid file");
+    }
     char buffer[BUFFER_SIZE];
     if(!input.getline(buffer, BUFFER_SIZE) || std::string(buffer) != fileHeader) {
-        logger.debug(";"+std::string(buffer)+";");
-        logger.debug(";"+fileHeader+";");
-        throw std::invalid_argument("wrong file header");
+        throw FileFormatException("Wrong file header", buffer, 0, strlen(buffer));
     }
     while(input.getline(buffer, BUFFER_SIZE)) {
             if (buffer[0] == '#') {
                 switch (buffer[1]) {
                     case 'N':
-                        try {
-                            if (std::isspace(buffer[2])) {
-                                name = std::string(buffer + 3);
-                            } else {
-                                name = std::string(buffer + 2);
-                                logger.error("No space after #N");
-                            }
-                            if (noName) {
-                                noName = false;
-                            } else {
-                                logger.error("Two names in one file!");
-                            }
-                        } catch (std::exception e) {
-                            logger.error("read name exception");
-                            logger.error(e);
+                        if (std::isspace(buffer[2])) {
+                            name = std::string(buffer + 3);
+                        } else {
+                            name = std::string(buffer + 2);
+                            logger.error() << FileFormatException("No space after #N", buffer, 2, 3);
+                        }
+                        if (noName) {
+                            noName = false;
+                        } else {
+                            logger.error() << FileFormatException("Two names in one file", buffer, 0, strlen(buffer));
                         }
 
                         break;
@@ -84,51 +82,37 @@ GameField GameFieldIO::readField() {
                                 rules = GameRules(buffer + 3);
                             } else {
                                 rules = GameRules(buffer + 2);
-                                logger.error("No space after #R");
+                                logger.error() << FileFormatException("No space after #R", buffer, 2, 3);
                             }
                             if (noRules) {
                                 noRules = false;
                             } else {
-                                logger.error("Two rules in one file!");
+                                logger.error() << FileFormatException("Two rules in one file", buffer, 0, strlen(buffer));
                             }
-                        } catch (std::exception e) {
-                            logger.error("read rule exception");
-                            logger.error(e);
+                        } catch (FileFormatException &e) {
+                            logger.error() << "can't read world rule " << e;
                         }
                         break;
                     case 'S':
-                        try {
-                            if (std::isspace(buffer[2])) {
-                                try {
-                                   size = readNumbers(buffer+3);
-                                } catch (std::exception e) {
-                                    logger.error(e);
-                                }
-                            } else {
-                                try {
-                                    size = readNumbers(buffer+2);
-                                } catch (std::exception e) {
-                                    logger.error(e);
-                                }
-                                logger.error("No space after #S");
-                            }
-                            if (noSize) {
-                                noSize = false;
-                            } else {
-                                logger.error("Two field size in one file!");
-                            }
-                        } catch (std::exception e) {
-                            logger.error("read size exception");
-                            logger.error(e);
+                        if (std::isspace(buffer[2])) {
+                            size = readNumbers(buffer+3);
+                        } else {
+                            size = readNumbers(buffer+2);
+                            logger.error() << FileFormatException("No space after #S", buffer, 2, 3);
+                        }
+                        if (noSize) {
+                            noSize = false;
+                        } else {
+                            logger.error() << FileFormatException("Two field size in one file", buffer, 0, strlen(buffer));
                         }
                         break;
                     default:
-                        logger.error("Unknown argument type!");
+                        logger.error() << FileFormatException("Unknown value type", buffer, 0, strlen(buffer));
                         break;
                 }
             } else {
                 dots.push_back(readNumbers(buffer));
-                logger.debug("read dots " + std::to_string(dots[dots.size() -1].first) + ":" + std::to_string(dots[dots.size() -1].second));
+                logger.debug() << "read dots " << dots[dots.size() -1].first << ":" << dots[dots.size() -1].second;
             }
     }
 
@@ -145,19 +129,19 @@ GameField GameFieldIO::readField() {
     }
 
     if(noRules)
-        logger.error("No game rules, use default");
+        logger.error() << "No game rules, use default";
     if(noName)
-        logger.error("No world name, use file name as name");
+        logger.error() << "No world name, use file name as name";
     if(noSize)
-        logger.info("No field size, use field 64*64");
+        logger.info() << "No field size, use field 32*32";
 
     input.close();
-    return {rules, name, data, size.first, size.second};
+    return {rules, noName ? path : name, data, size.first, size.second};
 }
 
-void GameFieldIO::writeInFile(GameField& field) {
+void GameFieldIO::writeInFile(GameField& field) const {
     std::ofstream output(path);
-    output << fileHeader;
+    output << fileHeader << std::endl;
     output << "#N " << field.getName() << std::endl;
     output << "#R " << field.getRules() << std::endl;
     output << "#S " << field.getWidth() << " " << field.getHeight() << std::endl;
@@ -171,13 +155,10 @@ void GameFieldIO::writeInFile(GameField& field) {
     output.close();
 }
 
-GameField GameFieldIO::getDefault() {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+GameField GameFieldIO::getDefault(unsigned int number) {
     Logger log("DefaultGameFieldBuilder");
-    int number = sizeof(defaultFields) / sizeof(defaultFields[0]);
-    log.debug("count of patterns "+std::to_string(number));
-    number = rand() % number;
-    log.debug("choosen number  "+std::to_string(number));
+    number = number % (sizeof(defaultFields) / sizeof(defaultFields[0]));
+    log.debug() << "chosen number " << number;
     GameFieldLore lore = defaultFields[number];
     bool data[lore.width*lore.height];
     for (int x = 0; x < lore.width; x++) {
@@ -186,7 +167,7 @@ GameField GameFieldIO::getDefault() {
         }
     }
     for(std::pair<int, int> dot : lore.dots) {
-        log.debug("set dot " + std::to_string(dot.first) + ":" + std::to_string(dot.second));
+        log.debug() << "set dot " << dot.first << ":" << dot.second;
         data[GameField::getArrayPose(dot.first, dot.second, lore.width, lore.height)] = true;
     }
     return {lore.rules, lore.name, data, lore.width, lore.height};

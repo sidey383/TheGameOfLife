@@ -6,7 +6,7 @@ using namespace gol;
 
 GameField::GameField(GameRules& rules, std::string name, const bool *data, int width, int height):
         rules(rules), name(std::move(name)), width(width), height(height) {
-    logger.debug("create game field " + name);
+    logger.debug() << "create game field " << this->name;
     this->data = new bool[width * height];
     memcpy(this->data, data, sizeof(bool) * width * height);
 }
@@ -23,14 +23,13 @@ GameField::GameField(GameField const &field) {
     this->rules = field.getRules();
     this->width = field.width;
     this->height = field.height;
+    this->name = field.name;
     this->data = new bool[field.width*field.height];
     memcpy(this->data, field.data, field.width*field.height);
-    this->name = field.name;
 }
 
 GameField::~GameField() {
-    if(this->data != nullptr)
-        delete[] this->data;
+    delete[] this->data;
 }
 
 unsigned int GameField::getArrayPose(int x, int y, int width, int height) {
@@ -74,7 +73,8 @@ void GameField::setDot(int x, int y, bool val) {
 void GameField::tick() {
     if(width <= 0 || height <= 0)
         return;
-    bool* data = new bool[width*height];
+    logger.debug() << "tick field " << name;
+    bool* newData = new bool[width * height];
     for (int x = 0; x < width; x++) {
         int sum = this->data[getArrayPose(x-1, -1)]
                 + this->data[getArrayPose(x, -1)]
@@ -85,7 +85,7 @@ void GameField::tick() {
                 + this->data[getArrayPose(x-1, 0)]
                 + this->data[getArrayPose(x+1, 0)];
         for (int y = 0; y < height; y++) {
-            data[getArrayPose(x, y)] = rules.isActive(this->data[getArrayPose(x, y)], sum);
+            newData[getArrayPose(x, y)] = rules.isActive(this->data[getArrayPose(x, y)], sum);
             /* how change state of sum?
              *  x
              * rrr
@@ -104,7 +104,7 @@ void GameField::tick() {
         }
     }
     delete[] this->data;
-    this->data = data;
+    this->data = newData;
 }
 
 std::string GameField::getName() const {
@@ -112,6 +112,8 @@ std::string GameField::getName() const {
 }
 
 GameField& GameField::operator=(GameField const & field) {
+    if(std::addressof(field) == this)
+        return *this;
     this->width = field.width;
     this->height = field.height;
     this->rules = field.rules;

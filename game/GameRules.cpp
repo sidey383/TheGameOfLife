@@ -6,49 +6,43 @@
 using namespace gol;
 
 GameRules::GameRules(std::string data) {
-    auto iterator = data.begin();
-    if(iterator == data.end()) {
-        logger.error("void string");
-        throw std::invalid_argument("not full rule");
+    int i = 0;
+    if(data.empty()) {
+        throw FileFormatException("no symbols in rule", data, 0, 0);
     }
-    if(*iterator != 'B') {
-        logger.error("game rule must start from B");
-        throw std::invalid_argument("game rule must start from B");
+    if(data[i] != 'B') {
+        throw FileFormatException("game rule must start from B", data, i, i+1);
     }
-    ++iterator;
+    i++;
 
-    for(;iterator != data.end() && std::isdigit(*iterator); ++iterator) {
-        if(this->brith.find(*iterator - '0') != this->brith.end()) {
-            logger.info("Some the number is defined twice in one part of the rule");
+    for(; i < data.size() && std::isdigit(data[i]); ++i) {
+        if(this->brith.find(data[i]  - '0') != this->brith.end()) {
+            logger.info() << "number" << data[i] - '0' << " is defined twice in first part of the rule";
         }
-        logger.debug("insert " + std::to_string(*iterator-'0') + " in brith");
-        this->brith.insert(*iterator - '0');
+        logger.debug() << "insert " << data[i]-'0' << " in brith";
+        this->brith.insert(data[i] - '0');
     }
 
-    if(iterator == data.end()) {
-        logger.error("wrong rule format");
-        throw std::invalid_argument("not full rule");
+    if(i >= data.size()) {
+        throw FileFormatException("not full rule", data, i, i+1);
     }
-    if(*iterator != '/') {
-        logger.error("wrong rule format");
-        throw std::invalid_argument("parts of rule must divided by /");
+    if(data[i] != '/') {
+        throw FileFormatException("parts of rule must divided by /", data, i, i+1);
     }
-    ++iterator;
-    if(iterator == data.end()) {
-        logger.error("wrong rule format");
-        throw std::invalid_argument("not full rule");
+    ++i;
+    if(i >= data.size()) {
+        throw FileFormatException("not full rule", data, i, i+1);
     }
-    if(*iterator != 'S') {
-        logger.error("wrong rule format");
-        throw std::invalid_argument("second part must started by S");
+    if(data[i] != 'S') {
+        throw FileFormatException("second part must started from S", data, i, i+1);
     }
-    ++iterator;
-    for(;iterator != data.end() && std::isdigit(*iterator); ++iterator) {
-        if (this->survival.find(*iterator - '0') != this->survival.end()) {
-            logger.info("Some the number is defined twice in one part of the rule");
+    ++i;
+    for(; i < data.size() && std::isdigit(data[i]); ++i) {
+        if (this->survival.find(data[i] - '0') != this->survival.end()) {
+            logger.info() << "number" << data[i] - '0' << " is defined twice in second part of the rule";
         }
-        logger.debug("insert " + std::to_string(*iterator-'0') + " in survival");
-        this->survival.insert(*iterator - '0');
+        logger.debug() << "insert " << data[i]-'0' << " in survival";
+        this->survival.insert(data[i] - '0');
     }
 }
 
@@ -86,7 +80,7 @@ GameRules::GameRules(const GameRules &rules) {
     this->survival = rules.survival;
 }
 
-std::ostream &operator<<(std::ostream &out, const GameRules rules) {
+std::ostream &operator<<(std::ostream &out, gol::GameRules rules) {
     out << "B";
     for(int b : rules.getBrith()) {
         out << (char) (b + '0');
@@ -94,6 +88,6 @@ std::ostream &operator<<(std::ostream &out, const GameRules rules) {
     out<<"/S";
     for(int s : rules.getSurvive()) {
         out << (char) (s + '0');
-    };
+    }
     return out;
 }

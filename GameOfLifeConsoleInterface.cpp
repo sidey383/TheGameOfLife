@@ -6,10 +6,13 @@
 using namespace gol;
 
 static void printHelp() {
-    std::cout << "dump <filename> - save world in file" << std::endl
-            << "tick <n=1> - tick world n times, default 1" << std::endl
-            << "exit - exit from program" << std::endl
-            << "help - show this text" << std::endl;
+    std::cout
+    << "===============================================" << std::endl
+    << "\tdump <filename> - save world in file" << std::endl
+    << "\ttick <n=1> - tick world n times, default 1" << std::endl
+    << "\texit - exit from program" << std::endl
+    << "\thelp - show this text" << std::endl
+    << "===============================================" << std::endl;
 }
 
 static void printField(GameField &field, int iteration) {
@@ -27,10 +30,11 @@ static void printField(GameField &field, int iteration) {
 }
 
 void GameOfLifeConsoleInterface::start() {
+    printField(field, iterationCount);
     printHelp();
     while(true) {
         char buffer[2048];
-        logger.debug("wait for command");
+        logger.debug() << "wait for command";
         std::cin.getline(buffer, 2048);
         std::vector <std::string> args;
         std::string word;
@@ -38,16 +42,12 @@ void GameOfLifeConsoleInterface::start() {
         while (s >> word)
             args.push_back(word);
         if(args[0] == "exit") {
+            std::cout << "Bye!\n";
             break;
         }
         if(args[0] == "tick" ) {
-            int n = 0;
             if(args.size() > 1) {
-                try {
-                    n = std::stoi(args[1]);
-                } catch (std::exception &e) {
-                    logger.error(e);
-                }
+                int n = std::stoi(args[1]);
                 for(int i = 0; i < n; i++) {
                     field.tick();
                     iterationCount++;
@@ -57,7 +57,7 @@ void GameOfLifeConsoleInterface::start() {
                 continue;
             }
             printField(field, iterationCount);
-            logger.debug("field printed");
+            logger.debug() << "Field printed";
             continue;
         }
         if(args[0] == "dump") {
@@ -69,8 +69,10 @@ void GameOfLifeConsoleInterface::start() {
             try {
                 io.writeInFile(field);
             } catch (std::exception &e) {
-                logger.error(e);
+                logger.error() << e.what();
+                continue;
             }
+            std::cout << "Write in file!\n";
             continue;
         }
         printHelp();
