@@ -6,7 +6,7 @@ namespace gol {
     class GameFieldIO {
         std::string path;
         Logger logger = Logger("GameFieldIO");
-        std::string fileHeader = "#Life 1.06\n";
+        std::string fileHeader = "#Life 1.06";
 
         std::pair<int, int> readNumbers(char* buffer);
 

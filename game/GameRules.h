@@ -15,6 +15,8 @@ namespace gol {
 
         GameRules(std::set<int> brith, std::set<int> survival);
 
+        GameRules(GameRules const &);
+
         explicit GameRules(std::string data);
 
         bool isActive(bool hasDot, int neighbors) const;

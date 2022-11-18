@@ -7,38 +7,49 @@ using namespace gol;
 
 GameRules::GameRules(std::string data) {
     auto iterator = data.begin();
-    if(iterator == data.end())
+    if(iterator == data.end()) {
+        logger.error("void string");
         throw std::invalid_argument("not full rule");
-    if(*iterator != 'B')
+    }
+    if(*iterator != 'B') {
+        logger.error("game rule must start from B");
         throw std::invalid_argument("game rule must start from B");
+    }
     ++iterator;
 
     for(;iterator != data.end() && std::isdigit(*iterator); ++iterator) {
-        if(this->brith.find(*iterator = '0') != this->brith.end()) {
+        if(this->brith.find(*iterator - '0') != this->brith.end()) {
             logger.info("Some the number is defined twice in one part of the rule");
         }
-        this->brith.insert(*iterator = '0');
+        logger.debug("insert " + std::to_string(*iterator-'0') + " in brith");
+        this->brith.insert(*iterator - '0');
     }
 
-    if(iterator == data.end())
+    if(iterator == data.end()) {
+        logger.error("wrong rule format");
         throw std::invalid_argument("not full rule");
-    if(*iterator != '/')
+    }
+    if(*iterator != '/') {
+        logger.error("wrong rule format");
         throw std::invalid_argument("parts of rule must divided by /");
+    }
     ++iterator;
-    if(iterator == data.end())
+    if(iterator == data.end()) {
+        logger.error("wrong rule format");
         throw std::invalid_argument("not full rule");
-    if(*iterator != 'S')
+    }
+    if(*iterator != 'S') {
+        logger.error("wrong rule format");
         throw std::invalid_argument("second part must started by S");
-
+    }
+    ++iterator;
     for(;iterator != data.end() && std::isdigit(*iterator); ++iterator) {
-        if (this->survival.find(*iterator = '0') != this->survival.end()) {
+        if (this->survival.find(*iterator - '0') != this->survival.end()) {
             logger.info("Some the number is defined twice in one part of the rule");
         }
-        this->survival.insert(*iterator = '0');
+        logger.debug("insert " + std::to_string(*iterator-'0') + " in survival");
+        this->survival.insert(*iterator - '0');
     }
-
-    if(iterator != data.end() && *iterator != '\n')
-        throw std::invalid_argument("wrong end of line");
 }
 
 GameRules::GameRules(std::set<int> brith, std::set<int> survival): brith(std::move(brith)), survival(std::move(survival)) {}
@@ -68,6 +79,11 @@ GameRules &GameRules::operator=(const GameRules & rules) {
     this->brith = rules.brith;
     this->survival = rules.survival;
     return *this;
+}
+
+GameRules::GameRules(const GameRules &rules) {
+    this->brith = rules.brith;
+    this->survival = rules.survival;
 }
 
 std::ostream &operator<<(std::ostream &out, const GameRules rules) {

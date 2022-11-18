@@ -20,23 +20,27 @@ namespace gol {
 
         GameField(GameRules& rules, std::string name, const bool *data, int width, int height);
 
+        GameField();
+
+        GameField(GameField const&);
+
         ~GameField();
 
         void setDot(int x, int y, bool val);
 
-        bool getData(int x, int y);
+        bool getData(int x, int y) const;
 
         void tick();
 
-        int getWidth();
+        int getWidth() const;
 
-        int getHeight();
+        int getHeight() const;
 
-        GameRules getRules();
+        GameRules getRules() const;
 
-        std::string getName();
+        std::string getName() const;
 
-        unsigned int getArrayPose(int x, int y);
+        unsigned int getArrayPose(int x, int y) const;
 
         GameField& operator=(GameField const &);
 

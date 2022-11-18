@@ -1,17 +1,36 @@
 #include "GameField.h"
 #include <utility>
+#include <cstring>
 
 using namespace gol;
 
 GameField::GameField(GameRules& rules, std::string name, const bool *data, int width, int height):
         rules(rules), name(std::move(name)), width(width), height(height) {
     logger.debug("create game field " + name);
-    this->data = (bool*) malloc(sizeof(bool) * width * height);
+    this->data = new bool[width * height];
     memcpy(this->data, data, sizeof(bool) * width * height);
 }
 
+GameField::GameField() {
+    this->rules = GameRules();
+    this->width = 0;
+    this->height = 0;
+    this->data = nullptr;
+    this->name = "";
+}
+
+GameField::GameField(GameField const &field) {
+    this->rules = field.getRules();
+    this->width = field.width;
+    this->height = field.height;
+    this->data = new bool[field.width*field.height];
+    memcpy(this->data, field.data, field.width*field.height);
+    this->name = field.name;
+}
+
 GameField::~GameField() {
-    free(data);
+    if(this->data != nullptr)
+        delete[] this->data;
 }
 
 unsigned int GameField::getArrayPose(int x, int y, int width, int height) {
@@ -24,32 +43,38 @@ unsigned int GameField::getArrayPose(int x, int y, int width, int height) {
               (height + (y % height)));
 }
 
-unsigned int GameField::getArrayPose(int x, int y) {
+unsigned int GameField::getArrayPose(int x, int y) const {
     return getArrayPose(x, y, width, height);
 }
 
-bool GameField::getData(int x, int y) {
+bool GameField::getData(int x, int y) const {
+    if(width <= 0 || height <= 0)
+        return false;
     return data[getArrayPose(x, y)];
 }
 
-int GameField::getHeight() {
+int GameField::getHeight() const {
     return height;
 }
 
-int GameField::getWidth() {
+int GameField::getWidth() const {
     return width;
 }
 
-GameRules GameField::getRules() {
+GameRules GameField::getRules() const {
     return rules;
 }
 
 void GameField::setDot(int x, int y, bool val) {
+    if(width <= 0 || height <= 0)
+        return;
     data[getArrayPose(x, y)] = val;
 }
 
 void GameField::tick() {
-    bool* data = (bool*) malloc(sizeof(bool) * width * height);
+    if(width <= 0 || height <= 0)
+        return;
+    bool* data = new bool[width*height];
     for (int x = 0; x < width; x++) {
         int sum = this->data[getArrayPose(x-1, -1)]
                 + this->data[getArrayPose(x, -1)]
@@ -78,11 +103,11 @@ void GameField::tick() {
                    + this->data[getArrayPose(x, y+1)];
         }
     }
-    free(this->data);
+    delete[] this->data;
     this->data = data;
 }
 
-std::string GameField::getName() {
+std::string GameField::getName() const {
     return name;
 }
 
@@ -90,7 +115,7 @@ GameField& GameField::operator=(GameField const & field) {
     this->width = field.width;
     this->height = field.height;
     this->rules = field.rules;
-    this->data = (bool*) malloc(sizeof(bool) * width * height);
+    this->data = new bool[width * height];
     memcpy(this->data, field.data, sizeof(bool) * width * height);
     return *this;
 }
