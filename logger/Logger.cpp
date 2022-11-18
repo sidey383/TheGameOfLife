@@ -23,7 +23,7 @@ Logger::LoggerStream Logger::info() const {
 }
 
 Logger::LoggerStream Logger::error() const {
-    return {this->name, infoFormat, std::cerr, (LogLevel::Error >= this->level)};
+    return {this->name, errorFormat, std::cerr, (LogLevel::Error >= this->level)};
 }
 
 Logger::LoggerStream Logger::debug() const {

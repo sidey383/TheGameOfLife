@@ -8,6 +8,7 @@ struct InputState {
     char* outputFile;
     char* inputFile;
     int iterationCount;
+    bool hasUnknown = false;
 };
 
 static void printHelp() {
@@ -27,14 +28,18 @@ static InputState readState(int size, char** args) {
     for(int i = 1; i < size; i++) {
         try {
             if (!strcmp(args[i], "-i")) {
-                if (i + 1 < size) {
-                    state.iterationCount = std::stoi(args[i + 1]);
-                    if(state.iterationCount <= 0) {
+                if (++i < size) {
+                    try {
+                        state.iterationCount = std::stoi(args[i]);
+                    } catch (const std::invalid_argument & e) {
                         logger.error() << "count of iterations not natural number";
+                    } catch (const std::out_of_range & e) {
+                        logger.error() << "count of iterations too large";
                     }
                 } else {
                     logger.error() << "No value for key -i";
                 }
+                continue;
             }
 
             if (!strcmp(args[i], "--iterations=")) {
@@ -42,29 +47,35 @@ static InputState readState(int size, char** args) {
                 if(state.iterationCount <= 0) {
                     logger.error() << "count of iterations not natural number";
                 }
+                continue;
             }
             if (!strcmp(args[i], "-o")) {
-                if (i + 1 < size) {
-                    state.outputFile = args[i+1];
+                if (++i < size) {
+                    state.outputFile = args[i];
                 } else {
                     logger.error() << "No value for key -o";
                 }
+                continue;
             }
 
             if (!strcmp(args[i], "--output=")) {
                 state.outputFile = args[i] + 12;
+                continue;
             }
             if (!strcmp(args[i], "-in")) {
-                if (i + 1 < size) {
-                    state.inputFile = args[i+1];
+                if (++i < size) {
+                    state.inputFile = args[i];
                 } else {
                     logger.error() << "No value for key -in";
                 }
+                continue;
             }
 
             if (!strcmp(args[i], "--input=")) {
                 state.inputFile = args[i] + 8;
+                continue;
             }
+            state.hasUnknown = true;
         } catch (std::exception &e) {
             logger.error() << e.what();
         }
@@ -75,6 +86,10 @@ static InputState readState(int size, char** args) {
 int main(int argc, char** argv) {
     Logger::setLevel(Logger::Error);
     InputState state = readState(argc, argv);
+    if(state.hasUnknown) {
+        printHelp();
+        return 0;
+    }
     Logger logger("Main");
     logger.debug()
             << "input file: " << (!state.inputFile ? "null" : state.inputFile) << "\n"
