@@ -64,12 +64,6 @@ GameRules GameField::getRules() const {
     return rules;
 }
 
-void GameField::setDot(int x, int y, bool val) {
-    if(width <= 0 || height <= 0)
-        return;
-    data[getArrayPose(x, y)] = val;
-}
-
 void GameField::tick() {
     if(width <= 0 || height <= 0)
         return;

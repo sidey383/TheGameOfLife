@@ -26,8 +26,6 @@ namespace gol {
 
         ~GameField();
 
-        void setDot(int x, int y, bool val);
-
         bool getData(int x, int y) const;
 
         void tick();
